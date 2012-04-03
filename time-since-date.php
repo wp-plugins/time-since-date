@@ -3,7 +3,7 @@
 Plugin Name: Time since date
 Plugin URI: http://www.freanki.net/timesincedate/
 Description: This plugin shows the time since a specific date.
-Version: 0.5
+Version: 0.6
 Author: Frank Hommes
 Author URI: http://www.freanki.net/
 License: GPL2
@@ -14,6 +14,13 @@ License: GPL2
  */
 class time_since_date_widget extends WP_Widget {
 
+function monate_differenz ($t1, $t2) {
+$month_from = date(‘n’, $t1);
+$month_to = date(‘n’, $t2);
+$year_from = date(‘Y’, $t1);
+$year_to = date(‘Y’, $t2);
+return 12*($year_to-$year_from)+$month_to-$month_from;
+}
 
     /** constructor */
     function time_since_date_widget() {
@@ -30,7 +37,7 @@ class time_since_date_widget extends WP_Widget {
 		$date = $instance['date'];
 		$pre = $instance['pre'];
 		$after = $instance['after'];
-		
+		$scale = $instance['scale'];	
 		if(!$size)
 			$size = 40;
 
@@ -41,8 +48,21 @@ class time_since_date_widget extends WP_Widget {
 							<ul>
 							<?php
 							echo $pre;
-							$query = "select to_days(CURDATE())-to_days('$date') as day";
-							echo $wpdb->get_var($query);
+	
+	  
+
+							if ($scale == "days") $output = floor((strtotime("now") - strtotime("$date")) / 86400);
+							elseif ($scale == "weeks") $output = floor((strtotime("now") - strtotime("$date")) / (86400*7));
+							elseif ($scale == "months") {
+										  $query = "SELECT TIMESTAMPDIFF(MONTH,'$date' ,CURDATE())";
+										  echo $wpdb->get_var($query);
+										    }
+							elseif ($scale == "years") {
+									$query = "SELECT TIMESTAMPDIFF(YEAR,'$date',CURDATE())";
+										  echo $wpdb->get_var($query);
+}
+
+							echo $output;
 							echo $after;
 							?>
 							</ul>
@@ -57,6 +77,7 @@ class time_since_date_widget extends WP_Widget {
 		$instance['date'] = strip_tags($new_instance['date']);
 		$instance['pre'] = strip_tags($new_instance['pre']);
 		$instance['after'] = strip_tags($new_instance['after']);
+		$instance['scale'] = strip_tags($new_instance['scale']);
         return $instance;
     }
 
@@ -67,7 +88,7 @@ class time_since_date_widget extends WP_Widget {
 	$date = esc_attr($instance['date']);
 	$pre = esc_attr($instance['pre']);
 	$after = esc_attr($instance['after']);
-		
+	$scale = esc_attr($instance['scale']);			
         ?>
          <p>
           <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label> 
@@ -80,13 +101,27 @@ class time_since_date_widget extends WP_Widget {
 	  <input  class="widefat" id="<?php echo $this->get_field_id('date'); ?>" name="<?php echo $this->get_field_name('date'); ?>" type="text" value="<?php echo $date; ?>" />
         </p>
 
+	  <p>
+          
+          <label for="<?php echo $this->get_field_id('scale'); ?>"><?php _e('Scale (days/months/years):'); ?></label> 
+	  <select size="1" name="<?php echo $this->get_field_name('scale'); ?>" id="<?php echo $this->get_field_id('scale'); ?>" class="widefat">
+
+					 <option value="days" <?php if ("days" == $scale) echo "selected='selected' "; ?> ><?php _e('days'); ?></option>
+					 <option value="weeks" <?php if ("weeks" == $scale) echo "selected='selected' "; ?> ><?php _e('weeks'); ?></option>	
+					 <option value="months" <?php if ("months" == $scale) echo "selected='selected' "; ?> ><?php _e('months'); ?></option>	
+					 <option value="years" <?php if ("years" == $scale) echo "selected='selected' "; ?> ><?php _e('years'); ?></option>	
+
+
+		  </select>
+        </p>
+
          <p>
-          <label for="<?php echo $this->get_field_id('pre'); ?>"><?php _e('Text before:'); ?></label> 
+          <label for="<?php echo $this->get_field_id('pre'); ?>"><?php _e('Text before (optional):'); ?></label> 
           <input class="widefat" id="<?php echo $this->get_field_id('pre'); ?>" name="<?php echo $this->get_field_name('pre'); ?>" type="text" value="<?php echo $pre; ?>" />
         </p>
 
          <p>
-          <label for="<?php echo $this->get_field_id('after'); ?>"><?php _e('Text after:'); ?></label> 
+          <label for="<?php echo $this->get_field_id('after'); ?>"><?php _e('Text after (optional):'); ?></label> 
           <input class="widefat" id="<?php echo $this->get_field_id('after'); ?>" name="<?php echo $this->get_field_name('after'); ?>" type="text" value="<?php echo $after; ?>" />
         </p>
 
@@ -94,19 +129,8 @@ class time_since_date_widget extends WP_Widget {
         <?php 
     }
 
-function days_to ($anfangsdatum) {
 
-//  $query = "select to_days(CURDATE())-to_days('2012-03-15') as day";
-        // MYSQL 4.1.1: $query = "select DATEDIFF('CURDATE()', '".$anfangsdatum."') as day";
-//$result = $wpdb->get_var( $wpdb->prepare( $query ) );
-//$days = $wpdb->get_var($query);
 
-//        return ("152");
-        //return $ausgabe['day'];
-        
 }
-
-
-} // class utopian_recent_posts
 // register Recent Posts widget
 add_action('widgets_init', create_function('', 'return register_widget("time_since_date_widget");'));
