@@ -3,7 +3,7 @@ Contributors: freanki
 Tags: widget, time, date
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: trunk
+Stable tag: 0.6
 
 This Plugin provides a widget which shows the days, weeks, month or years since a specific date.
 
